@@ -1,97 +1,142 @@
-html,
 body {
-  padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  height: 100vh;
+  overflow: hidden;
+  background: #111;
+  cursor: crosshair;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+#debug {
+  position: fixed;
+  top: 0px;
+  left: 10px;
+  color: white;
+  font-family: monospace;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 10;
+}
+#money {
+  color: white;
+  font-family: monospace;
+  font-size: 18px;
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 90
 }
 
-* {
-  box-sizing: border-box;
+#ball {
+  position: absolute;
+  background: red;
+  z-index: 100;
 }
 
-main {
-  min-height: 100vh;
-  padding: 4rem 2rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+#arrow {
+  position: absolute;
+  height: 4px;
+  background: blue;
+  transform-origin: left center;
+  z-index: 4;
+  display: none;
 }
 
-.title {
-  margin: 0;
-  line-height: 1.15;
-  font-size: 4rem;
+#power-indicator {
+  position: absolute;
+  font-size: 12px;
+  font-family: monospace;
+  color: white;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 4px;
+  border-radius: 3px;
+  pointer-events: none;
+  display: none;
+  z-index: 5;
+  user-select: none;
 }
 
-.title,
-.description {
-  text-align: center;
+#course {
+  position: relative;
+  margin: 20px auto;
+  background: #222;
+  z-index: 10;
 }
 
-.description {
-  margin: 4rem 0;
-  line-height: 1.5;
-  font-size: 1.5rem;
+.tile {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+
+  background-size: cover;
+  z-index: 1;
 }
 
-.code {
-  background: #fafafa;
-  border-radius: 5px;
-  padding: 0.75rem;
-  font-size: 1.1rem;
-  font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
-    Bitstream Vera Sans Mono, Courier New, monospace;
+.grass {
+  background-image: url("grass.jpeg");
 }
 
-.grid {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  max-width: 800px;
+.wall {
+  background-image: url("brick.jpeg");
 }
 
-.card {
-  margin: 1rem;
-  padding: 1.5rem;
+.wall.rotate {
+  transform: rotate(90deg);
+}
+
+.hole {
+  background-image: url("hole.jpeg");
+  background-size: cover;
+}
+.conveyor {
+  background-image: url('conveyor.png'); /* Your image */
+  background-size: cover;
+}
+.ice {
+  background-image: url("ice.jpeg"); /* Your ice tile */
+  background-size: cover;
+}
+.water {
+  background-image: url("water.jpeg"); /* or water.png */
+  background-size: cover;
+}
+.water-blob {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, #4af, #248);
+  opacity: 0.7;
+  pointer-events: none;
+  filter: blur(2px);
+  z-index: 0;
+}
+
+#shop {
+  position: fixed;
+  bottom: 200px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 12px;
+  border-radius: 6px;
+  color: white;
+  font-family: sans-serif;
+  z-index: 1000
+}
+
+.shop-button {
+  display: block;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: #444;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  width: 200px;
   text-align: left;
-  color: inherit;
-  text-decoration: none;
-  border: 1px solid #eaeaea;
-  border-radius: 10px;
-  transition: color 0.15s ease, border-color 0.15s ease;
-  max-width: 300px;
 }
 
-.card:hover,
-.card:focus,
-.card:active {
-  color: #0070f3;
-  border-color: #0070f3;
-}
-
-.card h2 {
-  margin: 0 0 1rem 0;
-  font-size: 1.5rem;
-}
-
-.card p {
-  margin: 0;
-  font-size: 1.25rem;
-  line-height: 1.5;
-}
-
-@media (max-width: 600px) {
-  .grid {
-    width: 100%;
-    flex-direction: column;
-  }
+.shop-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
