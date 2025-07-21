@@ -52,7 +52,4 @@ window.addEventListener("DOMContentLoaded", () => {
     console.error("❌ Missing ball or arrow in DOM.");
     return;
   }
-
-  initBallSystem({ ball, arrow }); // only passes needed DOM refs
-  spawnBallAt(spawnTile.x, spawnTile.y);
 });

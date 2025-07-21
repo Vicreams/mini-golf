@@ -43,6 +43,18 @@ body {
   display: none;
 }
 
+
+.overlay-mask {
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.overlay-image {
+  position: absolute;
+  z-index: 5; /* above tiles (1), below ball (100) */
+  pointer-events: none;
+}
+
 #power-indicator {
   position: absolute;
   font-size: 12px;
