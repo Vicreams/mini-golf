@@ -78,12 +78,14 @@ function onMouseUp(e) {
   if (!dragging) return;
   dragging = false;
 
-  if (!hasDraggedFarEnough) {
+  
+  if (!hasDraggedFarEnough || (Date.now() - lastShotTime) < upgradeTargets.shotCooldown) {
     arrow.style.display = "none";
     if (powerIndicator) powerIndicator.style.display = "none";
     return; // not a real drag
   }
-
+  
+  lastShotTime=Date.now()
   const dragScale = 0.2;
   let dx = (startX - e.clientX) * dragScale;
   let dy = (startY - e.clientY) * dragScale;
@@ -109,14 +111,16 @@ function onMouseUp(e) {
   window.currentTop = parseFloat(ball.style.top || 0);
 }
 
+
+
 function onMouseMove(e) {
   if (!dragging) return;
 
   const dx = startX - e.clientX;
   const dy = startY - e.clientY;
   const distance = Math.hypot(dx, dy);
-
-  if (!hasDraggedFarEnough && distance >= 5) {
+  
+  if (!hasDraggedFarEnough && distance >= 5 && (Date.now() - lastShotTime) >= upgradeTargets.shotCooldown) {
     hasDraggedFarEnough = true;
     arrow.style.display = "block";
   }
@@ -218,17 +222,79 @@ function updateBall() {
         console.log("💧 Water mask triggered — resetting ball.");
         resetBall();
       } else if (type === "ice") {
-        friction = 0.98;
+        friction = 0.975;
+      } else if (type === "sand") {
+        friction = upgradeTargets.sandFriction;
+      } else if (type === "deco") {
+        const img = mask.linkedImage;
+
+        if (img && img.isConnected) {
+          img.remove();
+
+          setTimeout(() => {
+            course.appendChild(img);
+          }, 10000); // Respawn after 10s
+
+          // Apply slight bounce-back with randomness
+          const bounceFactor = -0.7 + (Math.random() - 0.5) * 0.6;
+          velocityX *= bounceFactor;
+          velocityY *= bounceFactor;
+
+          console.log("🌳 Deco object hit: removed and bounced.");
+        }
       }
+      
     }
   });
   
   // Wall bounce
-  if (wallTiles.some(t => t.y >= topTile && t.y <= bottomTile && t.x === leftTile)) velocityX *= -0.8;
-  if (wallTiles.some(t => t.y >= topTile && t.y <= bottomTile && t.x === rightTile)) velocityX *= -0.8;
-  if (wallTiles.some(t => t.x >= leftTile && t.x <= rightTile && t.y === topTile)) velocityY *= -0.8;
-  if (wallTiles.some(t => t.x >= leftTile && t.x <= rightTile && t.y === bottomTile)) velocityY *= -0.8;
+  const ballBounds = {
+    left: newLeft,
+    right: newLeft + ballSize,
+    top: newTop,
+    bottom: newTop + ballSize,
+  };
 
+  for (const wall of wallTiles) {
+    const wallLeft = wall.x * tileSize;
+    const wallTop = wall.y * tileSize;
+    const wallBounds = {
+      left: wallLeft,
+      right: wallLeft + tileSize,
+      top: wallTop,
+      bottom: wallTop + tileSize,
+    };
+
+    const intersectX =
+      ballBounds.left < wallBounds.right &&
+      ballBounds.right > wallBounds.left;
+    const intersectY =
+      ballBounds.top < wallBounds.bottom &&
+      ballBounds.bottom > wallBounds.top;
+
+    if (intersectX && intersectY) {
+      // Compute overlap in X and Y
+      const overlapX =
+        Math.min(ballBounds.right, wallBounds.right) -
+        Math.max(ballBounds.left, wallBounds.left);
+      const overlapY =
+        Math.min(ballBounds.bottom, wallBounds.bottom) -
+        Math.max(ballBounds.top, wallBounds.top);
+
+      if (overlapX < overlapY) {
+        // Bounce horizontally
+        velocityX *= -0.8;
+        newLeft += velocityX > 0 ? overlapX : -overlapX;
+      } else {
+        // Bounce vertically
+        velocityY *= -0.8;
+        newTop += velocityY > 0 ? overlapY : -overlapY;
+      }
+
+      break; // bounce once per frame max
+    }
+  }
+  
   // Tile detection
   const ballCenterX = newLeft + ballSize / 2;
   const ballCenterY = newTop + ballSize / 2;
@@ -270,11 +336,20 @@ function updateBall() {
     const dx = ballCenterX - holeCenterX;
     const dy = ballCenterY - holeCenterY;
     const dist = Math.hypot(dx, dy);
-
+    // Hide the flag when ball is close
+    const flagElement = document.querySelector(".flag-wrapper");
+    if (flagElement) {
+      if (dist < tileSize * 1.5) {
+        flagElement.style.opacity = "0";
+      } else {
+        flagElement.style.opacity = "1";
+      }
+    }
     if (dist < tileSize * 0.3) {
       ballJustScored = true;
       velocityX = velocityY = 0;
       dragging = false;
+      game.currencies.money += upgradeTargets.holeMoney;
 
       ball.style.transition = "transform 0.3s, opacity 0.3s";
       ball.style.transform = "scale(0.5)";
@@ -304,7 +379,7 @@ function updateBall() {
   if (Math.abs(velocityY) < 0.1) velocityY = 0;
 
   requestAnimationFrame(updateBall);
-  
+  updateSpinRing()
   
 }
 
@@ -322,11 +397,33 @@ function resetBall() {
     ball.style.transition = '';
     ball.style.transform = 'scale(1)';
     ball.style.opacity = '1';
-    if (spawnTile) spawnBallAt(spawnTile.x, spawnTile.y);
-    ballJustScored = false;
+    if (game.unlocks["waterForgiveness"] && window.currentLeft != null && window.currentTop != null) {
+      ball.style.left = `${window.currentLeft}px`;
+      ball.style.top = `${window.currentTop}px`;
+      console.log("🔁 Respawned at last position due to upgrade");
+    } else {
+      if (spawnTile) spawnBallAt(spawnTile.x, spawnTile.y);
+    }
   }, 400);
 }
 
+// Spinning ring
+function updateSpinRing() {
+  const ballX = ball.offsetLeft + ball.offsetWidth / 2;
+  const ballY = ball.offsetTop + ball.offsetHeight / 2;
+
+  // Position it at ball center
+  spinRing.style.left = `${ballX - spinRing.offsetWidth / 2}px`;
+  spinRing.style.top = `${ballY - spinRing.offsetHeight / 2}px`;
+
+  const cooldownReady = (Date.now() - lastShotTime) >= upgradeTargets.shotCooldown;
+
+  if (!dragging && cooldownReady) {
+    spinRing.style.opacity = "1";
+    } else {
+    spinRing.style.opacity = "0";
+  }
+}
 
 // --- Visual Upgrade ---
 function applyBallVisualsFromUpgrades() {

@@ -3,6 +3,7 @@
 let currentLevelIndex = 0;
 let gameVisible = true;
 let lastShopTab = "basic"; // default
+let lastShotTime = 0;
 
 // --- Load a level (generates map) ---
 function loadLevel(index) {
@@ -21,37 +22,36 @@ const shopBasic = document.getElementById("shop-basic");
 const shopPrestige = document.getElementById("shop-prestige");
 
 function showGameView() {
-  gameVisible=true
+  gameVisible = true;
   gameView.style.display = "block";
   shopView.style.display = "none";
 }
 
 function showShopView() {
-  gameVisible=false
+  gameVisible = false;
   gameView.style.display = "none";
   shopView.style.display = "block";
 
-  // Restore the last viewed sub-tab
-  if (lastShopTab === "basic") {
-    showBasicShop();
-  } else {
+  if (lastShopTab === "prestige") {
     showPrestigeShop();
+  } else {
+    showBasicShop();
   }
-
-  updateShop(); // Update prices and buttons
 }
 
-// --- Sub-tab handlers ---
+// Sub-tabs
 function showBasicShop() {
   shopBasic.style.display = "block";
   shopPrestige.style.display = "none";
   lastShopTab = "basic";
+  buildShop("shop-basic");
 }
 
 function showPrestigeShop() {
   shopBasic.style.display = "none";
   shopPrestige.style.display = "block";
   lastShopTab = "prestige";
+  buildShop("shop-prestige");
 }
 
 // --- Event Listeners ---
@@ -67,8 +67,10 @@ function buildShop(containerId = "shop-basic") {
   const shop = document.getElementById(containerId);
   shop.innerHTML = "";
 
+  const category = containerId.replace("shop-", ""); // "basic" or "prestige"
+
   upgrades.forEach(upg => {
-    if (upg.category !== "basic") return; // only basic for now
+    if (upg.category !== category) return;
 
     const btn = document.createElement("button");
     btn.className = "shop-button";
@@ -87,13 +89,12 @@ function buildShop(containerId = "shop-basic") {
         applyUpgradeEffect(upg);
         if (typeof upg.fallback === "function") upg.fallback();
 
-        updateShop();
+        buildShop(containerId); // Refresh this tab only
         renderUI();
       }
     });
   });
 }
-
 
 //power ups:
 let revertCooldown = false;
@@ -102,7 +103,7 @@ const revertBtn = document.getElementById('revertBtn');
 
 revertBtn.addEventListener('click', () => {
   if (revertCooldown) return;
-
+  if (!game.unlocks["PUrevert"]) return;
   ball.style.left = `${window.currentLeft}px`;
   ball.style.top = `${window.currentTop}px`;
   velocityX = 0;
@@ -117,6 +118,22 @@ revertBtn.addEventListener('click', () => {
   }, 5000);
 });
 
+let freezeCooldown = false;
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && game.unlocks.freeze) {
+    if (freezeCooldown) return;
+    if (velocityX !== 0 || velocityY !== 0) {
+      velocityX = 0;
+      velocityY = 0;
+      freezeCooldown = true;
+      freeze.style.opacity = 0.5;
+      setTimeout(() => {
+        freezeCooldown = false;
+        freeze.style.opacity = 1;
+      }, 5000);
+    }
+  }
+});
 
 // --- Full game initialization ---
 window.addEventListener("DOMContentLoaded", () => {

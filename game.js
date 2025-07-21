@@ -2,8 +2,10 @@
 const upgradeTargets = {
   maxPower: 10,
   ballSpeed: 10,
-  shotCooldown: 1.0,
+  shotCooldown: 2000,
   teeSpeed: 10000,
+  sandFriction: 0.85,
+  holeMoney: 2,
 };
 
 const tileSize = 40;
@@ -18,7 +20,9 @@ const game = {
   unlocks: {
     upgrades: true,
     arrow: false,
-    PUrevert: false
+    PUrevert: false,
+    waterForgiveness: false,
+    freeze: false
   },
   other: {
     settings: {
