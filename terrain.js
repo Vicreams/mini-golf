@@ -21,11 +21,11 @@ const levels = [
     tileSize: 40,
     layout: [
       "WWWWWWWWWWW",
-      "WGGGGGGGGGW",
-      "WGGGGGGGGGW",
+      "WGTTTGGGGGW",
+      "WGTTTGGGGGW",
       "WSG>>GGGGHW",
-      "WGGGGGGGGGW",
-      "WGGGGGGGGGW",
+      "WGTTTGGGGGW",
+      "WGTTTGGGGGW",
       "WWWWWWWWWWW"
     ],
     overlays: [
@@ -53,6 +53,36 @@ const levels = [
 const wallTiles = [];
 let holeTile = null;
 let spawnTile = null;
+const teeSpawnTiles = [];
+let teeSpawnChance = 0.1;
+const activeTees = new Map(); 
+
+//Tee spawning
+function startTeeSpawning() {
+  setInterval(() => {
+    const tileSize = getTileSize();
+
+    teeSpawnTiles.forEach(spot => {
+      const key = `${spot.x},${spot.y}`;
+      if (activeTees.has(key)) return; // already has a tee
+
+      if (Math.random() < teeSpawnChance) {
+        const teeImg = document.createElement("img");
+        teeImg.src = "tee.png";
+        teeImg.className = "tee";
+        teeImg.style.position = "absolute";
+        teeImg.style.left = `${spot.x * tileSize}px`;
+        teeImg.style.top = `${spot.y * tileSize}px`;
+        teeImg.style.width = `${tileSize}px`;
+        teeImg.style.height = `${tileSize}px`;
+        teeImg.style.zIndex = 5;
+
+        course.appendChild(teeImg);
+        activeTees.set(key, teeImg);
+      }
+    });
+  }, upgradeTargets.teeSpeed);
+}
 
 // --- Map Generation ---
 function generateMap(level) {
@@ -82,9 +112,15 @@ function generateMap(level) {
       if (char === "W") {
         tile.classList.add("wall");
         wallTiles.push({ x, y });
-      } else if (char === "G" || char === "S") {
+      } else if (char === "G" || char === "S" || char === "T") {
         tile.classList.add("grass");
-        if (char === "S") spawnTile = { x, y };
+        if (char === "S") {
+          spawnTile = { x, y };
+        }
+        if (char === "T") {
+          teeSpawnTiles.push({ x, y });
+          tile.style.outline = "2px dashed gold"; //TO BE REMOVED
+        }
       } else if (char === "I") {
         tile.classList.add("ice");
       } else if (char === "H") {
@@ -181,6 +217,7 @@ function generateMap(level) {
           initBallSystem();
           if (spawnTile) {
             spawnBallAt(spawnTile.x, spawnTile.y);
+            startTeeSpawning();
           } else {
             console.warn("⚠️ No spawn tile defined in level!");
           }

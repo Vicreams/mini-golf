@@ -3,6 +3,7 @@
     id: "maxPowerBoost",
     name: "Sand your rock",
     description: "You're golfing with a... cube? Sand it down, increasing your distance.",
+    category: "basic",
     effect: {
       target: "maxPower",
       type: "multiply",
@@ -34,10 +35,39 @@
     }
   }, //Sand rock
   {
+     id: "teeSpawnRate",
+     name: "More likely tee.!",
+     description: "Tee are more likely to spawn.",
+     category: "basic",
+     effect: {
+       target: "teeSpeed",
+       type: "multiply",
+       value: 0.15,
+       prefix: "×",
+       suffix: " Max Power"
+     },
+     cost: {
+       currency: "money",
+       amount: 20,
+       multiplier: 1.5,
+       prefix: "$",
+       suffix: ""
+     },
+     maxLevel: 3,
+     requirements: {
+       upgrades: [],
+       unlocks: []
+     },
+     fallback: () => {
+       startTeeSpawning();
+     }
+   }, //Sand rock
+  {
     id: "BetterArrow",
     name: "Predictive Path",
     description: "See where your ball will go before releasing.",
     effect: null, // or just remove this line entirely
+    category: "basic",
     cost: {
       currency: "money",
       amount: 40,

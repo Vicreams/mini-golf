@@ -59,6 +59,8 @@ function spawnBallAt(x, y) {
 
   ball.style.left = `${px}px`;
   ball.style.top = `${py}px`;
+  window.currentLeft = px;
+  window.currentTop = py;
 
   console.log("🔄 Spawned at:", px, py);
 }
@@ -67,15 +69,20 @@ function spawnBallAt(x, y) {
 function onMouseDown(e) {
   if (!ball || !arrow) return;
   dragging = true;
+  hasDraggedFarEnough = false;
   startX = e.clientX;
   startY = e.clientY;
-  arrow.style.display = "block";
-  onMouseMove(e);
 }
 
 function onMouseUp(e) {
   if (!dragging) return;
   dragging = false;
+
+  if (!hasDraggedFarEnough) {
+    arrow.style.display = "none";
+    if (powerIndicator) powerIndicator.style.display = "none";
+    return; // not a real drag
+  }
 
   const dragScale = 0.2;
   let dx = (startX - e.clientX) * dragScale;
@@ -94,8 +101,12 @@ function onMouseUp(e) {
   velocityY = dy * 0.2;
 
   console.log("🏌️ Shot fired with velocity", velocityX, velocityY);
+
   arrow.style.display = "none";
   if (powerIndicator) powerIndicator.style.display = "none";
+
+  window.currentLeft = parseFloat(ball.style.left || 0);
+  window.currentTop = parseFloat(ball.style.top || 0);
 }
 
 function onMouseMove(e) {
@@ -104,6 +115,14 @@ function onMouseMove(e) {
   const dx = startX - e.clientX;
   const dy = startY - e.clientY;
   const distance = Math.hypot(dx, dy);
+
+  if (!hasDraggedFarEnough && distance >= 5) {
+    hasDraggedFarEnough = true;
+    arrow.style.display = "block";
+  }
+
+  if (!hasDraggedFarEnough) return; // don't update arrow if not dragged enough yet
+
   const angle = Math.atan2(dy, dx);
   const tileSize = getTileSize();
 
@@ -138,6 +157,9 @@ function isOverlapping(a, b) {
 
 // --- Main Update Loop ---
 function updateBall() {
+  if (!gameVisible) {
+    requestAnimationFrame(updateBall);
+    return; }
   const tileSize = getTileSize();
   const courseWidth = course.offsetWidth;
   const courseHeight = course.offsetHeight;
@@ -231,6 +253,14 @@ function updateBall() {
     }
     if (tileEl.classList.contains("ice")) friction = 0.98;
     if (tileEl.classList.contains("water")) return resetBall(); // TILE water
+    const key = `${tileX},${tileY}`;
+    if (activeTees && activeTees.has(key)) {
+      const tee = activeTees.get(key);
+      tee.remove();
+      activeTees.delete(key);
+      game.currencies.money += 1;
+      console.log("💰 Tee collected at", key, "Money +1");
+    }
   }
 
   // Hole detection
@@ -275,6 +305,7 @@ function updateBall() {
 
   requestAnimationFrame(updateBall);
   
+  
 }
 
 // --- Ball Kill ---
@@ -295,6 +326,7 @@ function resetBall() {
     ballJustScored = false;
   }, 400);
 }
+
 
 // --- Visual Upgrade ---
 function applyBallVisualsFromUpgrades() {

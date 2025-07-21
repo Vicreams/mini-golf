@@ -2,7 +2,8 @@
 const upgradeTargets = {
   maxPower: 10,
   ballSpeed: 10,
-  shotCooldown: 1.0
+  shotCooldown: 1.0,
+  teeSpeed: 10000,
 };
 
 const tileSize = 40;
@@ -16,7 +17,8 @@ const game = {
   },
   unlocks: {
     upgrades: true,
-    arrow: false
+    arrow: false,
+    PUrevert: false
   },
   other: {
     settings: {

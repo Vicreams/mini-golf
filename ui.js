@@ -10,6 +10,8 @@ function updateDebugUI() {
 function updateShop() {
   upgrades.forEach(upg => {
     const btn = document.getElementById(`upgrade-${upg.id}`);
+    if (!btn) return; // 🛑 skip if button doesn't exist
+
     const level = game.upgrades[upg.id] || 0;
     const cost = getUpgradeCost(upg);
     const currency = upg.cost.currency;
@@ -23,13 +25,12 @@ function updateShop() {
       btn.disabled = !affordable;
     }
   });
-  
 
   document.getElementById("money").textContent = `Money: ${game.currencies.money}`;
 }
 
 function renderUI() {
-  document.getElementById("money").textContent = `Money: ${money}`;
+  document.getElementById("money").textContent = `Money: ${game.currencies.money}`;
   updateShop();
   updateDebugUI();
   requestAnimationFrame(renderUI);

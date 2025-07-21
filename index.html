@@ -5,22 +5,34 @@
   <title>Golf Ball</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <div id="course">
-    <div id="ball"></div>
-    <div id="arrow"></div>
-    <div id="power-indicator">0%</div>
+  <div id="tabs">
+    <button id="tab-game">Main</button>
+    <button id="tab-upgrades">Upgrades</button>
+  </div>
+
+  <div id="game-view">
+    <div id="course"></div>
+      <div id="ball"></div>
+      <div id="arrow"></div>
+      <div id="power-indicator">0%</div>
+      <img id="revertBtn" src="revert.png">
   </div>
   <div id="debug"></div>
-  <div id="money">Money: 0</div>
-  <div id="shop"></div>
+  <div id="money"></div>
+  <div id="shop-view" style="display: none;">
+    <div id="shop-tabs">
+      <button id="tab-basic">Basic</button>
+      <button id="tab-prestige">Prestige</button>
+    </div>
+    <div id="shop-basic"></div>
+    <div id="shop-prestige" style="display: none;"></div>
+  </div>
+  </div>
 
-  <!-- Load scripts in order -->
   <script src="game.js"></script>
   <script src="terrain.js"></script>
   <script src="ball.js"></script>
   <script src="upgrades.js"></script>
   <script src="ui.js"></script>
   <script src="main.js"></script>
-</body>
 </html>
